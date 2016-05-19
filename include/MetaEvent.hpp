@@ -1,12 +1,21 @@
-#ifndef EVENT_FRAMEWORK_INCLUDE_METAEVENT_HPP_
-#define EVENT_FRAMEWORK_INCLUDE_METAEVENT_HPP_
+#ifndef _HEV_INCLUDE_METAEVENT_HPP_
+#define _HEV_INCLUDE_METAEVENT_HPP_
 
 #include "include/Event.h"
 #include "include/MetaEvent.h"
+#include "include/MetaEventConnector.hpp"
 
 #include <utility>
 
 namespace hev {
+
+	template <typename T> std::string toString(const T& v) {
+		return std::to_string(v);
+	}
+
+	template <> std::string toString(const std::string& s) {
+		return s;
+	}
 
 	/* ----- Field ----- */
 
@@ -20,12 +29,17 @@ namespace hev {
 
 	/* ----- FieldImpl ----- */
 
-	template <typename S> template <typename FieldT> MetaEvent<S>::FieldImpl<FieldT>::FieldImpl(std::string name, FieldT (*getter)(const S&)) :
-			MetaEvent<S>::Field(name), getter(getter) {
+	template <typename S> template <typename FieldT> MetaEvent<S>::FieldImpl<FieldT>::FieldImpl(std::string name, const FieldT& (*getter)(const S&), std::string (*toStr)(const FieldT&)) :
+			MetaEvent<S>::Field(name), getter(getter), toStr(toStr) {
 	}
 
-	template <typename S> template <typename FieldT> void MetaEvent<S>::FieldImpl<FieldT>::stream(std::ostream& stream, const S& object) {
-		std::cout << getter(object) << std::endl;
+	template <typename S> template <typename FieldT> std::string MetaEvent<S>::FieldImpl<FieldT>::str(const S& object) {
+		const FieldT& value = getter(object);
+
+		if(toStr)
+			return toStr(value);
+		else
+			return toString(value);
 	}
 
 	/* ----- ConnectorImpl ----- */
@@ -46,18 +60,20 @@ namespace hev {
 
 	template <typename S> template <typename ... Parents> MetaEvent<S>::MetaEvent(std::string name, Parents&... p) :
 			name(name) {
-		std::cout << "$$ " << name << "\n";
+		//std::cout << "$$ " << name << "\n";
 		S::registerParents(*this, p...);
 	}
 
 	template <typename S> template <typename U> void MetaEvent<S>::connectToParent(MetaEvent<U>& parent) {
-		std::cout << getName() << " -> " << parent.getName() << "\n";
+		//std::cout << getName() << " -> " << parent.getName() << "\n";
 		connectors.push_back(new ConnectorImpl<U>(parent));
 	}
 
-	template <typename S> template <typename T> void MetaEvent<S>::addField(std::string name, T (*getter)(const S&)) {
-		std::cout << "Meta event " << getName() << ": added field " << name << "\n";
-		fields.push_back(new FieldImpl<T>(name, getter));
+	template <typename S> template <typename T> void MetaEvent<S>::addField(std::string name,
+									const T& (*getter)(const S&),
+									std::string (*toStr)(const T&)) {
+		//std::cout << "Meta event " << getName() << ": added field " << name << "\n";
+		fields.push_back(new FieldImpl<T>(name, getter, toStr));
 	}
 
 	template <typename S> void MetaEvent<S>::fire(const S& e) {
@@ -66,10 +82,6 @@ namespace hev {
 
 		for (Connector* c : connectors)
 			c->propagate(e);
-	}
-
-	template <typename S> template <typename T> void MetaEvent<S>::registerField(std::string name, const T& v) {
-
 	}
 
 	template <typename S> void MetaEvent<S>::addListener(Listener<S>* l) {
@@ -95,4 +107,4 @@ namespace hev {
 
 }
 
-#endif /* EVENT_FRAMEWORK_INCLUDE_METAEVENT_HPP_ */
+#endif // _HEV_INCLUDE_METAEVENT_HPP_

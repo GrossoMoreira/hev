@@ -36,5 +36,5 @@ $(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	@rm -r $(OBJDIR)
-	@rm -r $(BINDIR)
+	@rm -rf $(OBJDIR)
+	@rm -rf $(BINDIR)

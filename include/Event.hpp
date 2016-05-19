@@ -1,5 +1,5 @@
-#ifndef EVENT_FRAMEWORK_INCLUDE_EVENT_HPP_
-#define EVENT_FRAMEWORK_INCLUDE_EVENT_HPP_
+#ifndef _HEV_INCLUDE_EVENT_HPP_
+#define _HEV_INCLUDE_EVENT_HPP_
 
 #include <include/Event.h>
 #include "include/MetaEvent.h"
@@ -26,4 +26,4 @@ namespace hev {
 
 }
 
-#endif /* EVENT_FRAMEWORK_INCLUDE_EVENT_HPP_ */
+#endif // _HEV_INCLUDE_EVENT_HPP_

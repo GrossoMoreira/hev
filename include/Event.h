@@ -1,5 +1,5 @@
-#ifndef _EVENTS_SUB_EVENT_
-#define _EVENTS_SUB_EVENT_
+#ifndef _HEV_EVENT_
+#define _HEV_EVENT_
 
 #include "include/MetaEvent.h"
 
@@ -21,4 +21,4 @@ namespace hev {
 	};
 }
 
-#endif //_EVENTS_SUB_EVENT_
+#endif //_HEV_EVENT_

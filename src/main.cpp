@@ -5,68 +5,88 @@
 #include <iostream>
 #include <unordered_set>
 
-struct Pedro: hev::Event<> {
-		int skill;
 
-		Pedro() :
-				skill(1337) {
-		}
+struct BodyMovement : hev::Event<> {
+	std::string person;
 };
 
-struct Joana: hev::Event<Pedro> {
-		int power;
-
-		Joana() :
-				power(24) {
-		}
+struct Play : hev::Event<> {
+	std::string game;
+	std::string play;
 };
 
-struct Rosendo: hev::Event<Pedro, Joana> {
-
+struct BallThrown : hev::Event<Play,BodyMovement> {
+	int ballNumber;
+	std::string from;
+	float velocity[3];
 };
 
-struct OuvidoJoana: hev::Listener<Joana> {
-		OuvidoJoana(hev::MetaEvent<Joana>& j) :
-				Listener("Ouvido", j) {
-		}
 
-		void listen(const Joana& j) {
-			std::cout << "OMG! Joana has happened!\n";
+struct MovementDetector : hev::Listener<BodyMovement> {
+	MovementDetector(hev::MetaEvent<BodyMovement>& m) : Listener("Movement Detector", m) {
+	}
 
-			for (auto f : getMeta()) {
-				f->stream(std::cout, j);
-			}
-		}
+	void listen(const BodyMovement& movement) {
+		std::cout << movement.person << " has moved." << std::endl;
+	}
 };
 
-struct OuvidoPedro: hev::Listener<Pedro> {
-		OuvidoPedro(hev::MetaEvent<Pedro>& p) :
-				Listener("Pedro", p) {
-		}
+struct GameTracker : hev::Listener<Play> {
+	GameTracker (hev::MetaEvent<Play>& p) : Listener("Game Tracker", p) {
+	}
 
-		void listen(const Pedro& j) {
-			std::cout << "OMG! Joana has happened!\n";
-
-			for (auto f : getMeta()) {
-				f->stream(std::cout, j);
-			}
-		}
+	void listen(const Play& play) {
+		std::cout << "A " << play.play << " is being made in a game of " << play.game << ".\n";
+	}
 };
+
+struct BallTracker: hev::Listener<BallThrown> {
+	BallTracker(hev::MetaEvent<BallThrown>& b) : Listener("Ball Tracker", b) {
+	}
+
+	void listen(const BallThrown& bt) {
+		std::cout << "Ball number " << bt.ballNumber << " was thrown from " << bt.from << " with velocity (" << bt.velocity[0] << "," << bt.velocity[1] << "," << bt.velocity[2] << ")\n";
+	}
+};
+
 
 int main() {
 
-	auto p = hev::MetaEvent<Pedro>("Pedro");
-	p.addField("skill", +[](const Pedro& p)->int {return p.skill;});
+	// Create an event of type Body Movement
 
-	hev::MetaEvent<Joana> j = hev::MetaEvent<Joana>("Joana", p);
-	j.addField("power", +[](const Joana& j)->int { return j.power;});
+	hev::MetaEvent<BodyMovement> movementEvent("Body movement");
+	movementEvent.addField("person", +[](const BodyMovement& m)-> const std::string& {return m.person;});
 
-	hev::MetaEvent<Rosendo>("Rosendo", p, j);
+	// Create an event of type Play
 
-	OuvidoJoana ouvidoDaJoana(j);
-	OuvidoPedro ouvidoDoPedro(p);
+	hev::MetaEvent<Play> playEvent("Play");
+	playEvent.addField("game", +[](const Play& p)-> const std::string& {return p.game;});
+	
+	// Create an event of type Ball Thrown
 
-	j.fire(Joana());
+	hev::MetaEvent<BallThrown> ballThrownEvent("Ball Thrown", playEvent, movementEvent);
+	ballThrownEvent.addField("from", +[](const BallThrown& b)-> const std::string& {return b.from;});
+
+	// Create three event listeners
+
+	MovementDetector detector(movementEvent); // This one detects people moving
+	GameTracker gameTracker(playEvent);	  // This one sees what is happening in the game 
+	BallTracker ballTracker(ballThrownEvent); // This one tracks the movement of the ball
+
+	// Prepare a 'Ball Thrown' event
+
+	BallThrown bt;
+	bt.ballNumber = 51;
+	bt.from = "left field";
+	bt.velocity[0] = 1; bt.velocity[1] = 2; bt.velocity[2] = 3;
+	bt.game = "Volleyball";
+	bt.play= "service";
+	bt.person = "Bob";
+
+	// Throw a ball!
+
+	ballThrownEvent.fire(bt);	
+
 
 	return 0;
 }

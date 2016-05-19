@@ -1,5 +1,5 @@
-#ifndef EVENT_FRAMEWORK_INCLUDE_LISTENER_HPP_
-#define EVENT_FRAMEWORK_INCLUDE_LISTENER_HPP_
+#ifndef _HEV_INCLUDE_LISTENER_HPP_
+#define _HEV_INCLUDE_LISTENER_HPP_
 
 #include "include/MetaEvent.h"
 #include "include/Listener.h"
@@ -12,7 +12,7 @@ namespace hev {
 
 	template <typename T> Listener<T>::Listener(std::string name, MetaEvent<T>& meta) :
 			meta(meta), name(name) {
-		std::cout << "(( " << name << " @ " << meta.getName() << ".\n";
+		//std::cout << "(( " << name << " @ " << meta.getName() << ".\n";
 		meta.addListener(this);
 	}
 
@@ -22,4 +22,4 @@ namespace hev {
 
 }
 
-#endif /* EVENT_FRAMEWORK_INCLUDE_LISTENER_HPP_ */
+#endif // _HEV_INCLUDE_LISTENER_HPP_

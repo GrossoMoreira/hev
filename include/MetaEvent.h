@@ -15,24 +15,27 @@ namespace hev {
 
 			class Field {
 					std::string name;
-				public:
 
+				public:
 					Field(std::string name);
 
 					const std::string& getName() const;
 
-					virtual void stream(std::ostream& stream, const S& object) = 0;
+					virtual std::string str(const S&) = 0;
 			};
 
 			/* ----- FieldImpl ----- */
 
 			template <typename FieldT> class FieldImpl: public Field {
-					FieldT (*getter)(const S&);
+					const FieldT& (*getter)(const S&);
+					std::string (*toStr)(const FieldT&);
 
 				public:
-					FieldImpl(std::string name, FieldT (*getter)(const S&));
+					FieldImpl(std::string name,
+						const FieldT& (*getter)(const S&),
+						std::string (*toStr)(const FieldT&) = 0);
 
-					virtual void stream(std::ostream& stream, const S& object);
+					std::string str(const S&);
 			};
 
 			/* ----- Connector ----- */
@@ -67,11 +70,11 @@ namespace hev {
 
 			template <typename U> void connectToParent(MetaEvent<U>& parent);
 
-			template <typename T> void addField(std::string name, T (*getter)(const S&));
+			template <typename T> void addField(std::string name,
+							const T& (*getter)(const S&),
+							std::string (*toStr)(const T&) = 0);
 
 			void fire(const S& e);
-
-			template <typename T> void registerField(std::string name, const T& v);
 
 			void addListener(Listener<S>* l);
 			void removeListener(Listener<S>* l);
